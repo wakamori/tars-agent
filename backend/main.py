@@ -178,19 +178,22 @@ async def analyze_frame(file: UploadFile = File(...)):
         return AnalysisResponse(**analysis_data)
         
     except Exception as e:
-        print(f"Analysis error: {e}")
+        import traceback
+        error_detail = f"分析エラー: {str(e)}\n{traceback.format_exc()}"
+        print(error_detail)
         raise HTTPException(
             status_code=500,
-            detail=f"分析エラー: {str(e)}"
+            detail=error_detail
         )
 
 
 @app.post("/mock-analyze", response_model=AnalysisResponse)
-async def mock_analyze(file: UploadFile = File(...)):
+async def mock_analyze(file: UploadFile = File(None)):
     """
     Mock analysis endpoint for testing without Vertex AI
     Returns dummy data for development
     """
+    # File parameter is optional for mock
     return AnalysisResponse(
         entities=[
             Entity(
