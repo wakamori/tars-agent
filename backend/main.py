@@ -18,7 +18,7 @@ from vertexai.generative_models import GenerationConfig, GenerativeModel, Part
 # Configuration
 PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT", "your-project-id")
 LOCATION = os.getenv("GOOGLE_CLOUD_LOCATION", "asia-northeast1")
-MODEL_NAME = "gemini-2.0-flash-exp"  # Fast and efficient
+MODEL_NAME = "gemini-3-flash-preview"  # Latest Gemini 3 Flash preview model
 
 # Initialize Vertex AI
 try:
@@ -185,6 +185,42 @@ async def analyze_frame(file: UploadFile = File(...)):
             status_code=500,
             detail=error_detail
         )
+
+
+@app.get("/mock-analyze")
+async def mock_analyze_get():
+    """
+    Mock analysis endpoint for testing without Vertex AI (GET version)
+    Returns dummy data for development
+    """
+    return AnalysisResponse(
+        entities=[
+            Entity(
+                type="worker",
+                bbox=[0.3, 0.5, 0.35, 0.6],
+                risk_level=75,
+                movement="moving_slow"
+            ),
+            Entity(
+                type="robot",
+                bbox=[0.6, 0.4, 0.7, 0.55],
+                risk_level=80,
+                movement="moving_fast"
+            )
+        ],
+        warnings=[
+            "作業員がロボットの動作範囲に接近しています",
+            "衝突の危険性: 高"
+        ],
+        interventions=[
+            {
+                "type": "barrier",
+                "position": [0.45, 0.5],
+                "reason": "作業員とロボットの間に安全バリアを配置"
+            }
+        ],
+        confidence=0.85
+    )
 
 
 @app.post("/mock-analyze", response_model=AnalysisResponse)

@@ -316,13 +316,8 @@ async function analyzeWithAI() {
         try {
             logThinking('モックデータを使用します...', 'warning');
             
-            // Reuse the same blob for mock
-            const mockFormData = new FormData();
-            mockFormData.append('file', blob, 'factory-floor.png');
-            
             const mockResponse = await fetch('/mock-analyze', {
-                method: 'POST',
-                body: mockFormData
+                method: 'GET'
             });
             
             if (!mockResponse.ok) {
