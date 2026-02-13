@@ -63,15 +63,24 @@ class AnalysisResponse(BaseModel):
 
 
 # System prompt for Gemini
-SYSTEM_PROMPT = """あなたは工場の安全管理AIです。画像を分析し、作業員とロボットの安全リスクを評価してください。
+SYSTEM_PROMPT = """あなたは工場の安全管理AIアシスタントです。
+協働ロボットと作業員が同じ空間で作業する製造現場の画像を分析し、安全リスクを評価してください。
 
-画像内の以下の要素を検出してください：
-- 作業員（青い円形 or 人型）
-- 協働ロボット（赤い/オレンジの四角形）
-- 障害物（灰色の静的オブジェクト）
-- 危険エリア（床の色が異なる部分）
+## 検出対象：
+- **作業員（worker）**: 青色の円形オブジェクト。人間の作業者を表現しています。
+- **協働ロボット（robot）**: 赤色または濃いピンク色の矩形オブジェクト。産業用ロボットアームを表現しています。
+- **障害物（obstacle）**: 灰色の静的オブジェクト。機械、壁、設備などを表現します。
+- **危険エリア（hazard）**: 床面の色が異なる領域。立入禁止エリアや危険ゾーンを表現します。
 
-以下のJSON形式で応答してください：
+## 安全リスク評価基準：
+1. **衝突リスク**: 作業員とロボットの距離が近い（画像の10%以内）
+2. **挟まれリスク**: 作業員が障害物とロボットの間にいる
+3. **動線交差**: 移動中の作業員とロボットの経路が交差する
+4. **危険エリア侵入**: 作業員が危険エリアに接近・侵入している
+
+## 応答形式：
+以下のJSON形式で応答してください（マークダウンのコードブロックは不要です）：
+
 {
   "entities": [
     {
@@ -81,19 +90,36 @@ SYSTEM_PROMPT = """あなたは工場の安全管理AIです。画像を分析�
       "movement": "static" | "moving_slow" | "moving_fast"
     }
   ],
-  "warnings": ["危険な状況の説明"],
+  "warnings": ["具体的な危険状況の説明"],
   "interventions": [
     {
       "type": "barrier" | "slowdown" | "alert",
       "position": [x, y],
-      "reason": "介入の理由"
+      "reason": "介入が必要な理由"
     }
   ],
   "confidence": 0.0-1.0
 }
 
-座標は画像の左上を(0,0)、右下を(1,1)とした正規化座標で表現してください。
-risk_levelは衝突の危険度を0-100で評価してください（100が最も危険）。
+## 座標系の説明：
+- bbox（バウンディングボックス）: [x1, y1, x2, y2] 形式
+- position（介入位置）: [x, y] 形式
+- すべての座標は正規化座標（0.0〜1.0）を使用
+- 画像の左上が (0, 0)、右下が (1, 1)
+- 例: 画像中央は [0.5, 0.5]
+
+## risk_levelの評価基準：
+- 0-30: 低リスク（十分な距離がある）
+- 31-60: 中リスク（注意が必要）
+- 61-85: 高リスク（介入を推奨）
+- 86-100: 緊急（即座に介入が必要）
+
+## interventionsの種類：
+- **barrier**: 作業員とロボットの間に安全バリアを配置（緑色の壁として表示）
+- **slowdown**: ロボットの動作速度を減速
+- **alert**: 作業員に警告を表示
+
+できるだけ具体的で実用的な安全介入を提案してください。
 """
 
 
@@ -146,12 +172,35 @@ async def analyze_frame(file: UploadFile = File(...)):
             [image_part, SYSTEM_PROMPT],
             generation_config=GenerationConfig(
                 temperature=0.1,  # Low temperature for consistent output
-                max_output_tokens=2048,
+                max_output_tokens=16384,  # Gemini 2.5 Flash supports up to 65,535
+                response_mime_type="application/json",  # Force JSON response
             )
         )
         
+        # Check finish reason
+        if response.candidates and response.candidates[0].finish_reason:
+            finish_reason = str(response.candidates[0].finish_reason)
+            if "MAX_TOKENS" in finish_reason or "SAFETY" in finish_reason:
+                print(f"⚠️  Response incomplete: {finish_reason}")
+                return AnalysisResponse(
+                    entities=[],
+                    warnings=[f"AI応答が不完全です: {finish_reason}"],
+                    interventions=[],
+                    confidence=0.0
+                )
+        
         # Parse response
-        response_text = response.text.strip()
+        try:
+            response_text = response.text.strip()
+        except (ValueError, AttributeError) as e:
+            print(f"⚠️  Cannot extract text from response: {e}")
+            print(f"Response: {response}")
+            return AnalysisResponse(
+                entities=[],
+                warnings=["AI応答の取得に失敗しました"],
+                interventions=[],
+                confidence=0.0
+            )
         
         # Extract JSON from markdown code blocks if present
         if "```json" in response_text:
