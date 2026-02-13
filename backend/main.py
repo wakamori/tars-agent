@@ -18,7 +18,7 @@ from vertexai.generative_models import GenerationConfig, GenerativeModel, Part
 # Configuration
 PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT", "your-project-id")
 LOCATION = os.getenv("GOOGLE_CLOUD_LOCATION", "asia-northeast1")
-MODEL_NAME = "gemini-3-flash-preview"  # Latest Gemini 3 Flash preview model
+MODEL_NAME = "gemini-2.5-flash"  # Latest stable Gemini 2.5 Flash model
 
 # Initialize Vertex AI
 try:

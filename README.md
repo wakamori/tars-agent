@@ -76,10 +76,10 @@ uvicorn main:app --reload --port 8080
 ### Google Cloud デプロイ
 
 ```bash
-# Vertex AI API有効化
-gcloud services enable aiplatform.googleapis.com
+# デプロイスクリプト実行（推奨）
+./deploy.sh
 
-# Cloud Runにデプロイ
+# または手動デプロイ
 gcloud run deploy tars \
   --source . \
   --region asia-northeast1 \
@@ -88,6 +88,23 @@ gcloud run deploy tars \
   --cpu 1 \
   --min-instances 0 \
   --max-instances 10
+```
+
+### コスト管理
+
+#### 無料枠
+- **Cloud Build**: 月120分まで無料
+- **Cloud Run**: 月2Mリクエスト、36万GB秒まで無料
+- **Artifact Registry**: 0.5GBまで無料
+
+#### 課金対策
+1. **デプロイ前確認**: `./deploy.sh` は確認プロンプトを表示
+2. **ローカルテスト**: `uvicorn backend.main:app --reload` でローカル開発
+3. **古いイメージ削除**: 定期的に `./cleanup-images.sh` を実行してストレージ課金削減
+
+```bash
+# 古いコンテナイメージを削除（最新3つを保持）
+./cleanup-images.sh
 ```
 
 ## 使い方
