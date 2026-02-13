@@ -56,6 +56,7 @@ gcloud run deploy tars \
     --cpu 1 \
     --min-instances 0 \
     --max-instances 10 \
+    --platform managed \
     --set-env-vars "GOOGLE_CLOUD_PROJECT=$PROJECT_ID,GOOGLE_CLOUD_LOCATION=asia-northeast1"
 
 if [ $? -eq 0 ]; then
