@@ -17,4 +17,5 @@ node_modules/
 .DS_Store
 .vscode/
 .idea/
-README.md
+ROADMAP.md
+backend/Dockerfile

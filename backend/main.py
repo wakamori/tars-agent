@@ -100,7 +100,7 @@ risk_levelは衝突の危険度を0-100で評価してください（100が最�
 @app.get("/")
 async def root():
     """Serve frontend HTML"""
-    return FileResponse("../frontend/index.html")
+    return FileResponse("frontend/index.html")
 
 
 @app.get("/health")
@@ -222,8 +222,8 @@ async def mock_analyze(file: UploadFile = File(...)):
 
 
 # Mount static files (CSS, JS)
-app.mount("/css", StaticFiles(directory="../frontend/css"), name="css")
-app.mount("/js", StaticFiles(directory="../frontend/js"), name="js")
+app.mount("/css", StaticFiles(directory="frontend/css"), name="css")
+app.mount("/js", StaticFiles(directory="frontend/js"), name="js")
 
 
 if __name__ == "__main__":
