@@ -32,9 +32,7 @@ except Exception as e:
 
 # FastAPI app
 app = FastAPI(
-    title="TARS API",
-    description="協働ロボット空間知能守護システム",
-    version="1.0.0"
+    title="TARS API", description="協働ロボット空間知能守護システム", version="1.0.0"
 )
 
 # CORS middleware
@@ -135,7 +133,7 @@ async def health_check():
     return {
         "status": "healthy",
         "vertex_ai": "connected" if model else "disconnected",
-        "project_id": PROJECT_ID
+        "project_id": PROJECT_ID,
     }
 
 
@@ -143,30 +141,29 @@ async def health_check():
 async def analyze_frame(file: UploadFile = File(...)):
     """
     Analyze factory floor image with Gemini Vision
-    
+
     Args:
         file: Screenshot from Matter.js canvas (PNG/JPEG)
-        
+
     Returns:
         Analysis with detected entities, warnings, and interventions
     """
-    
+
     if not model:
         raise HTTPException(
             status_code=503,
-            detail="Vertex AI not initialized. Check GOOGLE_CLOUD_PROJECT env variable."
+            detail="Vertex AI not initialized. Check GOOGLE_CLOUD_PROJECT env variable.",
         )
-    
+
     try:
         # Read image file
         image_bytes = await file.read()
-        
+
         # Create prompt with image
         image_part = Part.from_data(
-            data=image_bytes,
-            mime_type=file.content_type or "image/png"
+            data=image_bytes, mime_type=file.content_type or "image/png"
         )
-        
+
         # Call Gemini Vision
         response = model.generate_content(
             [image_part, SYSTEM_PROMPT],
@@ -174,9 +171,9 @@ async def analyze_frame(file: UploadFile = File(...)):
                 temperature=0.1,  # Low temperature for consistent output
                 max_output_tokens=16384,  # Gemini 2.5 Flash supports up to 65,535
                 response_mime_type="application/json",  # Force JSON response
-            )
+            ),
         )
-        
+
         # Check finish reason
         if response.candidates and response.candidates[0].finish_reason:
             finish_reason = str(response.candidates[0].finish_reason)
@@ -186,9 +183,9 @@ async def analyze_frame(file: UploadFile = File(...)):
                     entities=[],
                     warnings=[f"AI応答が不完全です: {finish_reason}"],
                     interventions=[],
-                    confidence=0.0
+                    confidence=0.0,
                 )
-        
+
         # Parse response
         try:
             response_text = response.text.strip()
@@ -199,15 +196,15 @@ async def analyze_frame(file: UploadFile = File(...)):
                 entities=[],
                 warnings=["AI応答の取得に失敗しました"],
                 interventions=[],
-                confidence=0.0
+                confidence=0.0,
             )
-        
+
         # Extract JSON from markdown code blocks if present
         if "```json" in response_text:
             response_text = response_text.split("```json")[1].split("```")[0].strip()
         elif "```" in response_text:
             response_text = response_text.split("```")[1].split("```")[0].strip()
-        
+
         # Parse JSON
         try:
             analysis_data = json.loads(response_text)
@@ -215,25 +212,23 @@ async def analyze_frame(file: UploadFile = File(...)):
             # Fallback: return error with raw response for debugging
             print(f"JSON Parse Error: {e}")
             print(f"Raw response: {response_text}")
-            
+
             return AnalysisResponse(
                 entities=[],
                 warnings=[f"AI応答の解析に失敗: {str(e)}"],
                 interventions=[],
-                confidence=0.0
+                confidence=0.0,
             )
-        
+
         # Validate and return
         return AnalysisResponse(**analysis_data)
-        
+
     except Exception as e:
         import traceback
+
         error_detail = f"分析エラー: {str(e)}\n{traceback.format_exc()}"
         print(error_detail)
-        raise HTTPException(
-            status_code=500,
-            detail=error_detail
-        )
+        raise HTTPException(status_code=500, detail=error_detail)
 
 
 @app.get("/mock-analyze")
@@ -248,27 +243,24 @@ async def mock_analyze_get():
                 type="worker",
                 bbox=[0.3, 0.5, 0.35, 0.6],
                 risk_level=75,
-                movement="moving_slow"
+                movement="moving_slow",
             ),
             Entity(
                 type="robot",
                 bbox=[0.6, 0.4, 0.7, 0.55],
                 risk_level=80,
-                movement="moving_fast"
-            )
+                movement="moving_fast",
+            ),
         ],
-        warnings=[
-            "作業員がロボットの動作範囲に接近しています",
-            "衝突の危険性: 高"
-        ],
+        warnings=["作業員がロボットの動作範囲に接近しています", "衝突の危険性: 高"],
         interventions=[
             {
                 "type": "barrier",
                 "position": [0.45, 0.5],
-                "reason": "作業員とロボットの間に安全バリアを配置"
+                "reason": "作業員とロボットの間に安全バリアを配置",
             }
         ],
-        confidence=0.85
+        confidence=0.85,
     )
 
 
@@ -285,27 +277,24 @@ async def mock_analyze(file: UploadFile = File(None)):
                 type="worker",
                 bbox=[0.3, 0.5, 0.35, 0.6],
                 risk_level=75,
-                movement="moving_slow"
+                movement="moving_slow",
             ),
             Entity(
                 type="robot",
                 bbox=[0.6, 0.4, 0.7, 0.55],
                 risk_level=80,
-                movement="moving_fast"
-            )
+                movement="moving_fast",
+            ),
         ],
-        warnings=[
-            "作業員がロボットの動作範囲に接近しています",
-            "衝突の危険性: 高"
-        ],
+        warnings=["作業員がロボットの動作範囲に接近しています", "衝突の危険性: 高"],
         interventions=[
             {
                 "type": "barrier",
                 "position": [0.45, 0.5],
-                "reason": "作業員とロボットの間に安全バリアを配置"
+                "reason": "作業員とロボットの間に安全バリアを配置",
             }
         ],
-        confidence=0.85
+        confidence=0.85,
     )
 
 
@@ -316,4 +305,5 @@ app.mount("/js", StaticFiles(directory="../frontend/js"), name="js")
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", 8080)))
