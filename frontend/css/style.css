@@ -333,3 +333,361 @@ body {
 .risk-high {
     color: var(--danger-color);
 }
+
+/* ============================================================================
+   Agent UI Styles - Self-Inquiry, Patterns, Memory Stream
+   ============================================================================ */
+
+/* Thinking Process Section */
+.thinking-process-section,
+.patterns-section,
+.memory-section {
+    margin-top: 20px;
+}
+
+.thinking-process,
+.discovered-patterns,
+.memory-stream {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    padding: 15px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+/* Self-Inquiry Styles */
+.self-inquiry {
+    padding: 10px;
+}
+
+.inquiry-section {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: rgba(66, 133, 244, 0.1);
+    border-radius: 8px;
+    border-left: 4px solid var(--primary-color);
+}
+
+.inquiry-section h4 {
+    margin-bottom: 10px;
+    color: var(--primary-color);
+    font-size: 1.1rem;
+}
+
+.inquiry-list {
+    list-style: none;
+    padding-left: 0;
+}
+
+.inquiry-list li {
+    padding: 8px 0;
+    padding-left: 20px;
+    position: relative;
+}
+
+.inquiry-list li::before {
+    content: '▸';
+    position: absolute;
+    left: 0;
+    color: var(--secondary-color);
+}
+
+/* Scenario Card */
+.scenario-card {
+    background: rgba(0, 0, 0, 0.2);
+    padding: 12px;
+    margin: 10px 0;
+    border-radius: 8px;
+    border-left: 4px solid #ff9800;
+}
+
+.scenario-meta {
+    margin: 8px 0;
+    font-size: 0.9rem;
+}
+
+.scenario-reasoning {
+    display: block;
+    margin-top: 8px;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    font-style: italic;
+}
+
+.badge {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 0.85rem;
+}
+
+.causal-text {
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
+    line-height: 1.8;
+}
+
+/* Pattern Cards */
+.alert {
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    font-weight: 500;
+}
+
+.alert-success {
+    background: rgba(52, 168, 83, 0.2);
+    border-left: 4px solid var(--secondary-color);
+    color: #a8e6b0;
+}
+
+.pattern-card {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.pattern-card.badge-new {
+    border-color: var(--secondary-color);
+    background: rgba(52, 168, 83, 0.1);
+}
+
+.pattern-card h4 {
+    margin-bottom: 8px;
+    color: var(--primary-color);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.badge-new-icon {
+    font-size: 1.2rem;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.pattern-card p {
+    margin: 10px 0;
+    line-height: 1.6;
+}
+
+.indicators {
+    margin-top: 10px;
+    padding: 8px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+/* Intervention Decision */
+.priority-indicator {
+    margin-bottom: 15px;
+}
+
+.priority-badge {
+    display: inline-block;
+    padding: 8px 16px;
+    border-radius: 20px;
+    color: white;
+    font-weight: bold;
+    font-size: 0.95rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.intervention-primary,
+.intervention-alternatives {
+    margin: 15px 0;
+}
+
+.intervention-primary h4,
+.intervention-alternatives h4 {
+    margin-bottom: 10px;
+    color: var(--primary-color);
+    font-size: 1rem;
+}
+
+.intervention-card {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 8px;
+    border-left: 4px solid var(--primary-color);
+}
+
+.intervention-card.primary {
+    background: rgba(52, 168, 83, 0.15);
+    border-left-color: var(--secondary-color);
+}
+
+.intervention-card.alternative {
+    background: rgba(255, 255, 255, 0.03);
+    border-left-color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.intervention-type {
+    font-size: 1.1rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: var(--secondary-color);
+}
+
+.intervention-reasoning {
+    margin: 8px 0;
+    line-height: 1.6;
+}
+
+.intervention-outcome {
+    margin-top: 10px;
+    padding: 8px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+/* Memory Stream */
+.memory-stats {
+    padding: 10px;
+    margin-bottom: 15px;
+    background: rgba(66, 133, 244, 0.1);
+    border-radius: 6px;
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--primary-color);
+}
+
+.reflections-section,
+.memories-section {
+    margin: 15px 0;
+}
+
+.reflections-section h4,
+.memories-section h4 {
+    margin-bottom: 12px;
+    color: var(--primary-color);
+    font-size: 1rem;
+}
+
+.reflection-card {
+    background: rgba(251, 188, 4, 0.1);
+    padding: 12px;
+    margin: 10px 0;
+    border-radius: 8px;
+    border-left: 4px solid var(--warning-color);
+}
+
+.reflection-card p {
+    line-height: 1.6;
+    color: var(--text-primary);
+}
+
+.memory-card {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 12px;
+    margin: 10px 0;
+    border-radius: 8px;
+    border-left: 4px solid var(--text-secondary);
+    transition: all 0.3s ease;
+}
+
+.memory-card:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateX(5px);
+}
+
+.memory-card.importance-8,
+.memory-card.importance-9,
+.memory-card.importance-10 {
+    border-left-color: var(--danger-color);
+}
+
+.memory-card.importance-6,
+.memory-card.importance-7 {
+    border-left-color: var(--warning-color);
+}
+
+.memory-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.memory-time {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.memory-importance {
+    font-size: 0.9rem;
+}
+
+.memory-obs {
+    font-weight: 500;
+    margin-bottom: 6px;
+}
+
+.memory-action {
+    font-size: 0.9rem;
+    color: var(--secondary-color);
+    margin: 4px 0;
+}
+
+.memory-outcome {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin: 4px 0;
+}
+
+.memory-learning {
+    margin-top: 8px;
+    padding: 6px;
+    background: rgba(66, 133, 244, 0.1);
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-style: italic;
+    color: var(--primary-color);
+}
+
+.no-data,
+.no-memories {
+    text-align: center;
+    color: var(--text-secondary);
+    padding: 20px;
+    font-style: italic;
+}
+
+/* Scrollbar Styles */
+.thinking-process::-webkit-scrollbar,
+.discovered-patterns::-webkit-scrollbar,
+.memory-stream::-webkit-scrollbar {
+    width: 8px;
+}
+
+.thinking-process::-webkit-scrollbar-track,
+.discovered-patterns::-webkit-scrollbar-track,
+.memory-stream::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+}
+
+.thinking-process::-webkit-scrollbar-thumb,
+.discovered-patterns::-webkit-scrollbar-thumb,
+.memory-stream::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 4px;
+}
+
+.thinking-process::-webkit-scrollbar-thumb:hover,
+.discovered-patterns::-webkit-scrollbar-thumb:hover,
+.memory-stream::-webkit-scrollbar-thumb:hover {
+    background: var(--secondary-color);
+}

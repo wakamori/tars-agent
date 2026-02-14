@@ -307,6 +307,9 @@ async function analyzeWithAI() {
         
         // Process analysis results
         processAnalysisResults(data);
+        
+        // Fetch updated memory stream
+        await fetchMemoryStream();
 
     } catch (error) {
         console.error('Analysis error:', error);
@@ -337,22 +340,37 @@ async function analyzeWithAI() {
     }
 }
 
-// Process analysis results from Gemini
+// Process analysis results from Gemini (Updated for AgentResponse)
 function processAnalysisResults(data) {
     if (!data) {
         logThinking('分析データが空です', 'error');
         return;
     }
     
-    const { entities, warnings, interventions, confidence } = data;
+    // New AgentResponse format
+    const { 
+        self_inquiry, 
+        entities, 
+        discovered_patterns, 
+        intervention_decision, 
+        confidence,
+        learning_note 
+    } = data;
     
     // Update confidence
     updateConfidence(confidence || 0);
     
-    // Update warnings
-    updateWarnings(warnings || []);
+    // Display agent's thinking process
+    if (self_inquiry) {
+        displayThinkingProcess(self_inquiry);
+    }
     
-    // Calculate risk level
+    // Display discovered patterns
+    if (discovered_patterns && discovered_patterns.length > 0) {
+        displayDiscoveredPatterns(discovered_patterns);
+    }
+    
+    // Calculate risk level from entities
     const maxRisk = entities && entities.length > 0 
         ? Math.max(...entities.map(e => e.risk_level))
         : 0;
@@ -365,16 +383,112 @@ function processAnalysisResults(data) {
         updateRiskLevel('安全', 'safe');
     }
     
-    // Apply interventions
-    applyInterventions(interventions);
+    // Apply intervention decision
+    if (intervention_decision) {
+        applyInterventionDecision(intervention_decision);
+    }
+    
+    // Log learning note
+    if (learning_note) {
+        logThinking(`学習: ${learning_note}`, 'info');
+    }
     
     const entityCount = entities ? entities.length : 0;
-    logThinking(`検出: ${entityCount}個のエンティティ, リスク最大値: ${maxRisk}`, 'success');
+    logThinking(`検出: ${entityCount}個のエンティティ, リスク最大値: ${maxRisk}, 優先度: ${intervention_decision?.priority || 0}`, 'success');
 }
 
-// Apply safety interventions
-function applyInterventions(interventions) {
-    if (!interventions || interventions.length === 0) {
+// Display agent's thinking process (Self-Inquiry)
+function displayThinkingProcess(selfInquiry) {
+    const container = document.getElementById('thinkingProcess');
+    if (!container) return;
+    
+    let html = '<div class="self-inquiry">';
+    
+    // Observations
+    if (selfInquiry.observations && selfInquiry.observations.length > 0) {
+        html += '<div class="inquiry-section">';
+        html += '<h4>🔍 観察</h4>';
+        html += '<ul class="inquiry-list">';
+        selfInquiry.observations.forEach(obs => {
+            html += `<li>${obs}</li>`;
+        });
+        html += '</ul></div>';
+    }
+    
+    // Memory connections
+    if (selfInquiry.memory_connections && selfInquiry.memory_connections.length > 0) {
+        html += '<div class="inquiry-section">';
+        html += '<h4>🧠 記憶との関連</h4>';
+        html += '<ul class="inquiry-list">';
+        selfInquiry.memory_connections.forEach(mem => {
+            html += `<li>${mem}</li>`;
+        });
+        html += '</ul></div>';
+    }
+    
+    // Accident scenarios
+    if (selfInquiry.accident_scenarios && selfInquiry.accident_scenarios.length > 0) {
+        html += '<div class="inquiry-section">';
+        html += '<h4>⚠️ 想定される事故シナリオ</h4>';
+        selfInquiry.accident_scenarios.forEach(scenario => {
+            const severityColor = scenario.severity > 7 ? '#ff4444' : 
+                                   scenario.severity > 4 ? '#ff9800' : '#ffc107';
+            const probability = Math.round(scenario.probability * 100);
+            html += `<div class="scenario-card" style="border-left: 4px solid ${severityColor}">`;
+            html += `<strong>${scenario.scenario}</strong><br>`;
+            html += `<div class="scenario-meta">`;
+            html += `確率: <span class="badge">${probability}%</span> | `;
+            html += `深刻度: <span class="badge">${scenario.severity}/10</span>`;
+            html += `</div>`;
+            html += `<small class="scenario-reasoning">${scenario.reasoning}</small>`;
+            html += `</div>`;
+        });
+        html += '</div>';
+    }
+    
+    // Causal analysis
+    if (selfInquiry.causal_analysis) {
+        html += '<div class="inquiry-section">';
+        html += '<h4>🔬 因果関係の分析</h4>';
+        html += `<p class="causal-text">${selfInquiry.causal_analysis}</p>`;
+        html += '</div>';
+    }
+    
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+// Display discovered patterns
+function displayDiscoveredPatterns(patterns) {
+    const container = document.getElementById('discoveredPatterns');
+    if (!container) return;
+    
+    let html = '';
+    const novelPatterns = patterns.filter(p => p.is_novel);
+    
+    if (novelPatterns.length > 0) {
+        html += '<div class="alert alert-success">';
+        html += `<strong>🎉 新しいパターンを${novelPatterns.length}件発見しました！</strong>`;
+        html += '</div>';
+    }
+    
+    patterns.forEach(pattern => {
+        const badgeClass = pattern.is_novel ? 'badge-new' : 'badge-known';
+        html += `<div class="pattern-card ${badgeClass}">`;
+        html += `<h4>${pattern.pattern_name} ${pattern.is_novel ? '<span class="badge-new-icon">🆕</span>' : ''}</h4>`;
+        html += `<p>${pattern.description}</p>`;
+        html += `<div class="indicators">`;
+        html += `<strong>検出指標:</strong> ${pattern.indicators.join(', ')}`;
+        html += `</div>`;
+        html += `</div>`;
+    });
+    
+    container.innerHTML = html;
+}
+
+// Apply intervention decision (with priority and alternatives)
+function applyInterventionDecision(decision) {
+    if (!decision || !decision.primary_action) {
         logThinking('介入は不要です');
         return;
     }
@@ -382,29 +496,51 @@ function applyInterventions(interventions) {
     clearInterventions();
     const interventionsList = document.getElementById('interventionsList');
     interventionsList.innerHTML = '';
+    
+    // Display priority
+    const priorityBadge = getPriorityBadge(decision.priority);
+    let html = `<div class="priority-indicator">${priorityBadge}</div>`;
+    
+    // Primary action
+    const action = decision.primary_action;
+    html += '<div class="intervention-primary">';
+    html += '<h4>主要アクション</h4>';
+    html += `<div class="intervention-card primary">`;
+    html += `<div class="intervention-type">${getInterventionIcon(action.type)} ${getInterventionLabel(action.type)}</div>`;
+    html += `<div class="intervention-reasoning">${action.reasoning}</div>`;
+    html += `<div class="intervention-outcome">期待される結果: ${action.expected_outcome}</div>`;
+    html += `</div>`;
+    html += '</div>';
+    
+    // Create intervention in simulation
+    if (action.type === 'barrier' && action.position) {
+        createSafetyBarrier(
+            action.position[0] * CANVAS_WIDTH,
+            action.position[1] * CANVAS_HEIGHT
+        );
+    }
+    
+    // Alternative actions
+    if (decision.alternative_actions && decision.alternative_actions.length > 0) {
+        html += '<div class="intervention-alternatives">';
+        html += '<h4>代替案</h4>';
+        decision.alternative_actions.forEach(alt => {
+            html += `<div class="intervention-card alternative">`;
+            html += `<strong>${getInterventionIcon(alt.type)} ${getInterventionLabel(alt.type)}</strong>: ${alt.reasoning}`;
+            html += `</div>`;
+        });
+        html += '</div>';
+    }
+    
+    interventionsList.innerHTML = html;
+    logThinking(`優先度 ${decision.priority}/10: ${action.type} を実施`, 'success');
+}
 
-    interventions.forEach(intervention => {
-        const { type, position, reason } = intervention;
-        
-        // Create intervention in simulation
-        if (type === 'barrier' && position) {
-            createSafetyBarrier(
-                position[0] * CANVAS_WIDTH,
-                position[1] * CANVAS_HEIGHT
-            );
-        }
-        
-        // Add to UI
-        const item = document.createElement('div');
-        item.className = 'intervention-item';
-        item.innerHTML = `
-            <strong>${getInterventionIcon(type)} ${getInterventionLabel(type)}</strong><br>
-            ${reason}
-        `;
-        interventionsList.appendChild(item);
-        
-        logThinking(`${getInterventionLabel(type)}を実施: ${reason}`, 'success');
-    });
+// Get priority badge HTML
+function getPriorityBadge(priority) {
+    const level = priority >= 8 ? 'critical' : priority >= 5 ? 'high' : 'normal';
+    const color = priority >= 8 ? '#ff4444' : priority >= 5 ? '#ff9800' : '#4CAF50';
+    return `<div class="priority-badge priority-${level}" style="background-color: ${color}">優先度: ${priority}/10</div>`;
 }
 
 // Create safety barrier in simulation
@@ -499,7 +635,9 @@ function getInterventionIcon(type) {
     const icons = {
         'barrier': '🛡️',
         'slowdown': '🐢',
-        'alert': '🚨'
+        'alert': '🚨',
+        'evacuation': '🏃',
+        'monitoring': '👁️'
     };
     return icons[type] || '⚙️';
 }
@@ -508,9 +646,81 @@ function getInterventionLabel(type) {
     const labels = {
         'barrier': '安全バリア配置',
         'slowdown': 'ロボット減速',
-        'alert': '警告表示'
+        'alert': '警告表示',
+        'evacuation': '緊急退避',
+        'monitoring': '監視継続'
     };
     return labels[type] || '介入';
+}
+
+// Fetch and display memory stream
+async function fetchMemoryStream() {
+    try {
+        const response = await fetch('/memory');
+        const data = await response.json();
+        displayMemoryStream(data);
+    } catch (error) {
+        console.error('Memory fetch error:', error);
+    }
+}
+
+// Display memory stream
+function displayMemoryStream(data) {
+    const container = document.getElementById('memoryStream');
+    if (!container) return;
+    
+    const { memories, reflections, stats } = data;
+    
+    let html = '';
+    
+    // Stats
+    if (stats && stats.total_memories > 0) {
+        html += '<div class="memory-stats">';
+        html += `<span>総記憶数: ${stats.total_memories}</span> | `;
+        html += `<span>平均重要度: ${stats.avg_importance?.toFixed(1) || 0}</span> | `;
+        html += `<span>洞察: ${stats.reflections_count}</span>`;
+        html += '</div>';
+    }
+    
+    // Reflections
+    if (reflections && reflections.length > 0) {
+        html += '<div class="reflections-section">';
+        html += '<h4>💡 高レベルな洞察（Reflection）</h4>';
+        reflections.forEach(reflection => {
+            html += `<div class="reflection-card">`;
+            html += `<p>${reflection.content || reflection}</p>`;
+            html += `</div>`;
+        });
+        html += '</div>';
+    }
+    
+    // Memories
+    if (memories && memories.length > 0) {
+        html += '<div class="memories-section">';
+        html += '<h4>📚 最近の記憶（最新5件）</h4>';
+        const recentMemories = memories.slice(-5).reverse();
+        recentMemories.forEach(mem => {
+            const importanceStars = '⭐'.repeat(Math.min(Math.floor(mem.importance / 2), 5));
+            const time = mem.timestamp ? new Date(mem.timestamp).toLocaleTimeString('ja-JP') : 'N/A';
+            html += `<div class="memory-card importance-${mem.importance}">`;
+            html += `<div class="memory-header">`;
+            html += `<span class="memory-time">${time}</span>`;
+            html += `<span class="memory-importance">${importanceStars}</span>`;
+            html += `</div>`;
+            html += `<div class="memory-obs">${mem.observation}</div>`;
+            html += `<div class="memory-action">→ ${mem.action.type || 'N/A'} at [${Array.isArray(mem.action.position) ? mem.action.position.join(', ') : 'N/A'}]</div>`;
+            html += `<div class="memory-outcome">${mem.outcome}</div>`;
+            if (mem.learning_note) {
+                html += `<div class="memory-learning">学び: ${mem.learning_note}</div>`;
+            }
+            html += `</div>`;
+        });
+        html += '</div>';
+    } else {
+        html += '<p class="no-memories">まだ記憶がありません</p>';
+    }
+    
+    container.innerHTML = html;
 }
 
 // Event listeners
