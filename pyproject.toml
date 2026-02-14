@@ -1,0 +1,22 @@
+[project]
+name = "tars"
+version = "1.0.0"
+description = "協働ロボット空間知能守護システム - Generative Agent with Spatial Intelligence"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi==0.115.0",
+    "uvicorn[standard]==0.32.0",
+    "python-multipart==0.0.12",
+    "google-cloud-aiplatform==1.71.0",
+    "pydantic==2.9.2",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+# This is an application, not a library package
+# Backend code is in backend/ directory
+[tool.hatch.build.targets.wheel]
+packages = ["backend"]

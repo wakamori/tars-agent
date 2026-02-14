@@ -57,20 +57,51 @@ TARSは以下の技術で予測的安全を実現：
 ### 前提条件
 
 - Google Cloud プロジェクト
+### 前提条件
+
+- Google Cloud プロジェクト
 - gcloud CLI インストール済み
 - Python 3.11+
+- **uv** (高速Pythonパッケージマネージャー) - [インストール方法](https://github.com/astral-sh/uv)
+
+```bash
+# uv のインストール (推奨)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
 
 ### ローカル開発
 
+**クイックスタート（最も簡単）：**
+
 ```bash
+./dev.sh   # 依存関係のインストール + サーバー起動を自動実行
+```
+
+**手動での開発：**
+
+```bash
+# 依存関係をインストール（pyproject.toml + uv.lock から）
+uv sync
+
 # バックエンド起動
-cd backend
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-pip install -r requirements.txt
-uvicorn main:app --reload --port 8080
+cd backend && uv run uvicorn main:app --reload --port 8080
 
 # ブラウザで http://localhost:8080 を開く
+```
+
+### 依存関係管理
+
+このプロジェクトは **pyproject.toml** + **uv** で依存関係を管理します：
+
+- **pyproject.toml**: 依存関係の定義（バージョン範囲）
+- **uv.lock**: 厳密なバージョン固定（再現可能なビルド用）
+
+依存関係を追加する場合：
+
+```bash
+# pyproject.toml を編集してから
+uv lock          # uv.lock を更新
+uv sync          # インストール
 ```
 
 ### Google Cloud デプロイ

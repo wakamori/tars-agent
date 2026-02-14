@@ -14,6 +14,9 @@ pip-delete-this-directory.txt
 .coverage
 htmlcov/
 
+# uv (keep uv.lock in version control for reproducibility)
+.uv/
+
 # Environment variables
 .env
 .env.local
