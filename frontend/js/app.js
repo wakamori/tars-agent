@@ -315,10 +315,15 @@ async function analyzeWithAI() {
         // Try mock endpoint as fallback
         try {
             logThinking('モックデータを使用します...', 'warning');
+            
             const mockResponse = await fetch('/mock-analyze', {
-                method: 'POST',
-                body: new FormData()
+                method: 'GET'
             });
+            
+            if (!mockResponse.ok) {
+                throw new Error(`Mock API Error: ${mockResponse.status}`);
+            }
+            
             const mockData = await mockResponse.json();
             processAnalysisResults(mockData);
         } catch (mockError) {
@@ -334,16 +339,21 @@ async function analyzeWithAI() {
 
 // Process analysis results from Gemini
 function processAnalysisResults(data) {
+    if (!data) {
+        logThinking('分析データが空です', 'error');
+        return;
+    }
+    
     const { entities, warnings, interventions, confidence } = data;
     
     // Update confidence
-    updateConfidence(confidence);
+    updateConfidence(confidence || 0);
     
     // Update warnings
-    updateWarnings(warnings);
+    updateWarnings(warnings || []);
     
     // Calculate risk level
-    const maxRisk = entities.length > 0 
+    const maxRisk = entities && entities.length > 0 
         ? Math.max(...entities.map(e => e.risk_level))
         : 0;
     
@@ -358,7 +368,8 @@ function processAnalysisResults(data) {
     // Apply interventions
     applyInterventions(interventions);
     
-    logThinking(`検出: ${entities.length}個のエンティティ, リスク最大値: ${maxRisk}`, 'success');
+    const entityCount = entities ? entities.length : 0;
+    logThinking(`検出: ${entityCount}個のエンティティ, リスク最大値: ${maxRisk}`, 'success');
 }
 
 // Apply safety interventions

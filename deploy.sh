@@ -15,7 +15,7 @@ echo -e "${BLUE}========================================${NC}"
 echo ""
 
 # プロジェクトIDの確認
-PROJECT_ID=$(gcloud config get-value project)
+PROJECT_ID=$(gcloud config get-value project 2>/dev/null)
 if [ -z "$PROJECT_ID" ]; then
     echo -e "${RED}エラー: Google Cloud プロジェクトが設定されていません${NC}"
     echo "以下のコマンドを実行してプロジェクトを設定してください:"
@@ -24,6 +24,24 @@ if [ -z "$PROJECT_ID" ]; then
 fi
 
 echo -e "${GREEN}✓ プロジェクトID: $PROJECT_ID${NC}"
+echo ""
+
+# デプロイ確認（課金対策）
+echo -e "${BLUE}📊 デプロイコスト情報:${NC}"
+echo "  • Cloud Build: 月120分まで無料（超過後 $0.003/分）"
+echo "  • Cloud Run: 月2M リクエスト・36万GB秒まで無料"
+echo "  • Artifact Registry: ストレージ 0.5GB まで無料"
+echo ""
+echo -e "${BLUE}💡 コスト削減のヒント:${NC}"
+echo "  • 古いイメージは自動削除されません（手動削除推奨）"
+echo "  • ローカルテストには: uvicorn backend.main:app --reload"
+echo ""
+read -p "このままデプロイを続けますか？ (y/N): " -n 1 -r
+echo ""
+if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    echo -e "${BLUE}デプロイをキャンセルしました${NC}"
+    exit 0
+fi
 echo ""
 
 # 必要なAPIの有効化
@@ -56,6 +74,7 @@ gcloud run deploy tars \
     --cpu 1 \
     --min-instances 0 \
     --max-instances 10 \
+    --platform managed \
     --set-env-vars "GOOGLE_CLOUD_PROJECT=$PROJECT_ID,GOOGLE_CLOUD_LOCATION=asia-northeast1"
 
 if [ $? -eq 0 ]; then
