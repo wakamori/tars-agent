@@ -98,7 +98,7 @@ npm run watch      # ファイル変更を監視して自動ビルド
 
 ```bash
 # バックエンド
-uv sync --extra dev                            # 依存関係（dev含む）をインストール
+uv sync                                        # 依存関係をインストール
 cd backend && uv run uvicorn main:app --reload --port 8080
 
 # フロントエンド (別ターミナル)
@@ -117,8 +117,8 @@ npm run build                                  # ビルド
 
 ```bash
 # pyproject.toml を編集してから
-uv lock                # uv.lock を更新
-uv sync --extra dev    # インストール（dev含む）
+uv lock          # uv.lock を更新
+uv sync          # インストール
 ```
 
 **フロントエンド (TypeScript):**
