@@ -6,7 +6,6 @@ Persistent memory stream with reflection capabilities for autonomous agent learn
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional
 
 
 class MemorySystem:
@@ -26,7 +25,7 @@ class MemorySystem:
         self.reflections = []
         print(f"📚 Memory system initialized: {len(self.memories)} memories loaded")
 
-    def _load(self) -> List[Dict]:
+    def _load(self) -> list[dict]:
         """JSONファイルから記憶をロード"""
         if self.memory_file.exists():
             try:
@@ -51,10 +50,10 @@ class MemorySystem:
     def add_memory(
         self,
         observation: str,
-        action: Dict,
+        action: dict,
         outcome: str,
         importance: int,
-        learning_note: Optional[str] = None,
+        learning_note: str | None = None,
     ) -> int:
         """
         新しい記憶を追加
@@ -91,11 +90,11 @@ class MemorySystem:
 
         return memory_id
 
-    def retrieve_recent(self, n: int = 5) -> List[Dict]:
+    def retrieve_recent(self, n: int = 5) -> list[dict]:
         """直近N件の記憶を取得"""
         return self.memories[-n:] if len(self.memories) >= n else self.memories
 
-    def retrieve_important(self, threshold: int = 7, limit: int = 5) -> List[Dict]:
+    def retrieve_important(self, threshold: int = 7, limit: int = 5) -> list[dict]:
         """重要度が高い記憶を取得"""
         important = [m for m in self.memories if m["importance"] >= threshold]
         return important[-limit:] if len(important) >= limit else important
@@ -153,7 +152,7 @@ class MemorySystem:
 
         return context
 
-    def generate_reflection(self, model, prompt_template: str) -> Optional[str]:
+    def generate_reflection(self, model, prompt_template: str) -> str | None:
         """
         Reflectionを生成（LLM呼び出し）
 
@@ -205,7 +204,7 @@ class MemorySystem:
             print(f"⚠️  Reflection generation failed: {e}")
             return None
 
-    def get_stats(self) -> Dict:
+    def get_stats(self) -> dict:
         """記憶システムの統計情報を取得"""
         if not self.memories:
             return {
@@ -216,11 +215,8 @@ class MemorySystem:
 
         return {
             "total_memories": len(self.memories),
-            "avg_importance": sum(m["importance"] for m in self.memories)
-            / len(self.memories),
-            "high_importance_count": len(
-                [m for m in self.memories if m["importance"] >= 7]
-            ),
+            "avg_importance": sum(m["importance"] for m in self.memories) / len(self.memories),
+            "high_importance_count": len([m for m in self.memories if m["importance"] >= 7]),
             "reflections_count": len(self.reflections),
             "oldest_memory": self.memories[0]["timestamp"] if self.memories else None,
             "newest_memory": self.memories[-1]["timestamp"] if self.memories else None,

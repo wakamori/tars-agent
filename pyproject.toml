@@ -12,6 +12,11 @@ dependencies = [
     "pydantic==2.9.2",
 ]
 
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.8.0",
+]
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
@@ -20,3 +25,36 @@ build-backend = "hatchling.build"
 # Backend code is in backend/ directory
 [tool.hatch.build.targets.wheel]
 packages = ["backend"]
+
+# Ruff configuration
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+# Include backend Python files
+include = ["backend/**/*.py"]
+
+[tool.ruff.lint]
+# Enable recommended rules
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort (import sorting)
+    "N",   # pep8-naming
+    "UP",  # pyupgrade (modern Python idioms)
+    "B",   # flake8-bugbear (common bugs)
+    "C4",  # flake8-comprehensions
+    "SIM", # flake8-simplify
+]
+
+# Ignore specific rules if needed
+ignore = [
+    "E501",  # Line too long (handled by formatter)
+    "B008",  # Function call in default argument (FastAPI pattern)
+    "B904",  # Exception handling without explicit from (existing pattern)
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"

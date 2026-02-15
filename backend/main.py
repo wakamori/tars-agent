@@ -5,7 +5,6 @@ FastAPI Backend with Vertex AI Gemini Integration + Generative Agent Architectur
 
 import json
 import os
-from typing import List
 
 import vertexai
 from fastapi import FastAPI, File, HTTPException, UploadFile
@@ -99,9 +98,9 @@ class AccidentScenario(BaseModel):
 class SelfInquiry(BaseModel):
     """エージェントの自己質問プロセス"""
 
-    observations: List[str] = Field(description="環境の観察内容")
-    memory_connections: List[str] = Field(description="過去の記憶との関連")
-    accident_scenarios: List[AccidentScenario] = Field(
+    observations: list[str] = Field(description="環境の観察内容")
+    memory_connections: list[str] = Field(description="過去の記憶との関連")
+    accident_scenarios: list[AccidentScenario] = Field(
         description="想定される事故シナリオ"
     )
     causal_analysis: str = Field(description="因果関係の分析")
@@ -113,7 +112,7 @@ class Entity(BaseModel):
     type: str = Field(
         description="エンティティのタイプ: worker, robot, obstacle, hazard"
     )
-    bbox: List[float] = Field(
+    bbox: list[float] = Field(
         description="バウンディングボックス [x1, y1, x2, y2] 正規化座標"
     )
     description: str = Field(description="エンティティの説明")
@@ -126,7 +125,7 @@ class DiscoveredPattern(BaseModel):
 
     pattern_name: str = Field(description="パターンの名前")
     description: str = Field(description="パターンの説明")
-    indicators: List[str] = Field(description="検出指標")
+    indicators: list[str] = Field(description="検出指標")
     is_novel: bool = Field(description="新規発見かどうか")
 
 
@@ -136,7 +135,7 @@ class InterventionAction(BaseModel):
     type: str = Field(
         description="アクションタイプ: barrier, alert, slowdown, evacuation, monitoring"
     )
-    position: List[float] = Field(description="介入位置 [x, y]")
+    position: list[float] = Field(description="介入位置 [x, y]")
     reasoning: str = Field(description="なぜこの介入が最適か")
     expected_outcome: str = Field(description="期待される結果")
 
@@ -146,15 +145,15 @@ class InterventionDecision(BaseModel):
 
     priority: int = Field(ge=1, le=10, description="優先度")
     primary_action: InterventionAction = Field(description="主要アクション")
-    alternative_actions: List[InterventionAction] = Field(description="代替アクション")
+    alternative_actions: list[InterventionAction] = Field(description="代替アクション")
 
 
 class AgentResponse(BaseModel):
     """エージェントの完全な応答（Structured Output）"""
 
     self_inquiry: SelfInquiry = Field(description="自己質問プロセス")
-    entities: List[Entity] = Field(description="検出されたエンティティ")
-    discovered_patterns: List[DiscoveredPattern] = Field(
+    entities: list[Entity] = Field(description="検出されたエンティティ")
+    discovered_patterns: list[DiscoveredPattern] = Field(
         description="発見されたパターン"
     )
     intervention_decision: InterventionDecision = Field(description="介入判断")
@@ -175,7 +174,7 @@ AGENT_PROMPT_TEMPLATE = """あなたはTARS - 自律的な工場安全エージ�
 
 ### 視覚情報の理解
 - **作業員（worker）**: 青色の円形オブジェクト
-- **協働ロボット（robot）**: 赤色または濃いピンク色の矩形オブジェクト  
+- **協働ロボット（robot）**: 赤色または濃いピンク色の矩形オブジェクト
 - **障害物（obstacle）**: 灰色の静的オブジェクト
 - **危険エリア（hazard）**: 色が異なる床面領域
 
