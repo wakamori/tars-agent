@@ -35,6 +35,9 @@ service-account-key.json
 *~
 .DS_Store
 
+# Personal VS Code settings (keep workspace settings only)
+.vscode/settings.json
+
 # Build
 dist/
 build/
@@ -54,3 +57,6 @@ logs/
 # Memory data (persistent agent memory)
 backend/data/
 data/
+
+# Development temporary files
+.dev-improvements-summary.md

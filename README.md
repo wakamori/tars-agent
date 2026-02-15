@@ -46,22 +46,27 @@ TARSは以下の技術で予測的安全を実現：
 
 ## 技術スタック
 
+### バックエンド
 - **実行環境**: Google Cloud Run
 - **AI**: Vertex AI (Gemini 2.0 Flash)
+- **フレームワーク**: FastAPI
+- **パッケージ管理**: uv
+- **コード品質**: ruff (linter + formatter)
+
+### フロントエンド
+- **言語**: TypeScript
 - **物理エンジン**: Matter.js
-- **バックエンド**: Python (FastAPI)
-- **フロントエンド**: HTML5 Canvas + Vanilla JavaScript
+- **ビルドツール**: esbuild
+- **コード品質**: ESLint + TypeScript Compiler
 
 ## セットアップ
 
 ### 前提条件
 
 - Google Cloud プロジェクト
-### 前提条件
-
-- Google Cloud プロジェクト
 - gcloud CLI インストール済み
 - Python 3.11+
+- Node.js 20+ (フロントエンドビルド用)
 - **uv** (高速Pythonパッケージマネージャー) - [インストール方法](https://github.com/astral-sh/uv)
 
 ```bash
@@ -74,35 +79,72 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 **クイックスタート（最も簡単）：**
 
 ```bash
+# バックエンド
 ./dev.sh   # 依存関係のインストール + サーバー起動を自動実行
+
+# フロントエンド (別ターミナル)
+cd frontend
+npm install        # 初回のみ
+npm run dev        # 開発モード：自動ビルド + ブラウザ自動リロード
+# または
+npm run build      # TypeScriptをビルド
+# または
+npm run watch      # ファイル変更を監視して自動ビルド
 ```
 
 **手動での開発：**
 
 ```bash
-# 依存関係をインストール（pyproject.toml + uv.lock から）
-uv sync
-
-# バックエンド起動
+# バックエンド
+uv sync                                        # 依存関係をインストール
 cd backend && uv run uvicorn main:app --reload --port 8080
+
+# フロントエンド (別ターミナル)
+npm install                                    # 初回のみ
+npm run build                                  # ビルド
 
 # ブラウザで http://localhost:8080 を開く
 ```
 
 ### 依存関係管理
 
-このプロジェクトは **pyproject.toml** + **uv** で依存関係を管理します：
-
+**バックエンド (Python):**
 - **pyproject.toml**: 依存関係の定義（バージョン範囲）
 - **uv.lock**: 厳密なバージョン固定（再現可能なビルド用）
-
-依存関係を追加する場合：
 
 ```bash
 # pyproject.toml を編集してから
 uv lock          # uv.lock を更新
 uv sync          # インストール
 ```
+
+**フロントエンド (TypeScript):**
+- **package.json**: 依存関係の定義
+- **package-lock.json**: バージョン固定
+
+```bash
+npm install matter-js        # 依存関係を追加
+npm install -D @types/xxx    # 型定義を追加
+```
+
+### コード品質チェック
+
+```bash
+# バックエンド
+uv run ruff check backend/       # Pythonリント
+uv run ruff format backend/      # Pythonフォーマット
+
+# フロントエンド
+npm run type-check              # TypeScript型チェック
+npm run lint                    # ESLint
+npm run lint:fix                # ESLint自動修正
+```
+
+**Pre-commit Hooks（自動）:**
+
+`git commit` 実行時に自動でリント・フォーマット処理が実行されます：
+- TypeScript: ESLint自動修正 + 型チェック
+- Python: ruff check --fix + ruff format
 
 ### Google Cloud デプロイ
 
@@ -151,13 +193,14 @@ gcloud run deploy tars \
 2. **挟まれ防止**: 可動部品と壁の間に作業員 → ロボット減速
 3. **落下物危険**: 不安定な物体の下に作業員 → 警告＋退避誘導
 
-## 開発状況
+## 機能
 
-- [x] プロジェクト構造作成
-- [ ] FastAPIバックエンド実装
-- [ ] Matter.jsフロントエンド実装
-- [ ] Gemini Vision統合
-- [ ] Cloud Runデプロイ
+- ✅ **自律エージェント**: Generative Agents アーキテクチャによる自己問答・学習
+- ✅ **記憶システム**: 重要度ベースの記憶管理とReflection
+- ✅ **パターン発見**: 新規パターンの自動検出
+- ✅ **物理シミュレーション**: Matter.jsによるリアルタイム衝突予測
+- ✅ **型安全**: TypeScript + Pydanticで完全な型保証
+- ✅ **コード品質**: ruff + ESLintで自動チェック
 
 ## ライセンス
 
