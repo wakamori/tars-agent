@@ -97,6 +97,10 @@ npm run build      # TypeScriptをビルド
 npm run watch      # ファイル変更を監視して自動ビルド
 ```
 
+> **🆕 World Model Experiment**: 
+> 倉庫番シミュレーション（物理ベース＋LLM）のデモは
+> http://localhost:8080/world-model.html でアクセスできます
+
 **手動での開発：**
 
 ```bash

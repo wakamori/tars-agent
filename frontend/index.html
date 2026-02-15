@@ -1,111 +1,710 @@
 <!DOCTYPE html>
 <html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TARS - 協働ロボット空間知能守護システム</title>
-    <link rel="stylesheet" href="/css/style.css">
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TARS - World Model Experiment</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #ffffff;
+        padding: 20px;
+        min-height: 100vh;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      h1 {
+        text-align: center;
+        margin-bottom: 10px;
+        font-size: 2.5em;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+      }
+
+      .subtitle {
+        text-align: center;
+        margin-bottom: 30px;
+        opacity: 0.9;
+        font-size: 1.2em;
+      }
+
+      .main-content {
+        display: grid;
+        grid-template-columns: 600px 280px 280px;
+        gap: 20px;
+        align-items: start;
+      }
+
+      .simulation-panel {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 15px;
+        padding: 20px;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      }
+
+      #simulation-container {
+        width: 100%;
+        background: #1a1a2e;
+        border-radius: 10px;
+        overflow: hidden;
+        line-height: 0;
+      }
+
+      #simulation-container canvas {
+        display: block;
+        width: 100% !important;
+        height: auto !important;
+      }
+
+      .control-panel {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 15px;
+        padding: 12px;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      }
+
+      .level-selector {
+        margin-bottom: 10px;
+      }
+
+      .level-selector h3 {
+        margin-bottom: 6px;
+        font-size: 1em;
+      }
+
+      .level-buttons {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+      }
+
+      .level-btn {
+        padding: 8px;
+        background: rgba(255, 255, 255, 0.2);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 8px;
+        color: white;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-size: 0.85em;
+      }
+
+      .level-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: translateY(-2px);
+      }
+
+      .level-btn.active {
+        background: rgba(255, 215, 0, 0.4);
+        border-color: #FFD700;
+      }
+
+      .state-info {
+        margin-bottom: 0;
+      }
+
+      .state-info h3 {
+        margin-bottom: 6px;
+        font-size: 1em;
+      }
+
+      .state-item {
+        background: rgba(0, 0, 0, 0.2);
+        padding: 6px 8px;
+        border-radius: 5px;
+        margin-bottom: 5px;
+        font-family: 'Courier New', monospace;
+        font-size: 0.85em;
+      }
+
+      .state-item:last-child {
+        margin-bottom: 0;
+      }
+
+      .state-item:last-child {
+        margin-bottom: 0;
+      }
+
+      .btn {
+        padding: 12px;
+        background: rgba(255, 255, 255, 0.2);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 8px;
+        color: white;
+        font-size: 0.9em;
+        cursor: pointer;
+        transition: all 0.3s;
+        width: 100%;
+      }
+
+      .btn:hover:not(:disabled) {
+        background: rgba(255, 255, 255, 0.3);
+        transform: translateY(-2px);
+      }
+
+      .btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .btn.primary {
+        background: rgba(76, 175, 80, 0.6);
+        border-color: #4CAF50;
+        font-size: 1em;
+      }
+
+      .btn.primary:hover:not(:disabled) {
+        background: rgba(76, 175, 80, 0.8);
+      }
+
+      .ai-panel {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 15px;
+        padding: 12px;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      }
+
+      .ai-panel h3 {
+        margin-bottom: 10px;
+        font-size: 1em;
+      }
+
+      .ai-thinking-container {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .ai-section {
+        background: rgba(0, 0, 0, 0.2);
+        padding: 10px;
+        border-radius: 8px;
+        border-left: 4px solid;
+      }
+
+      .ai-section h4 {
+        margin-bottom: 6px;
+        font-size: 0.9em;
+      }
+
+      .ai-content {
+        font-size: 0.8em;
+        line-height: 1.5;
+      }
+
+      .observation-section {
+        border-left-color: #4CAF50;
+      }
+
+      .memory-section {
+        border-left-color: #2196F3;
+      }
+
+      .reflection-section {
+        border-left-color: #FF9800;
+      }
+
+      .planning-section {
+        border-left-color: #9C27B0;
+      }
+
+      .memory-item {
+        padding: 6px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        font-size: 0.85em;
+      }
+
+      .memory-item:last-child {
+        border-bottom: none;
+      }
+
+      .footer {
+        margin-top: 30px;
+        text-align: center;
+        opacity: 0.7;
+        font-size: 0.9em;
+      }
+    </style>
+  </head>
+  <body>
     <div class="container">
-        <!-- Header -->
-        <header class="header">
-            <h1>🤖 TARS</h1>
-            <p class="subtitle">協働ロボット空間知能守護システム</p>
-        </header>
+      <h1>🤖 TARS - World Model Experiment</h1>
+      <p class="subtitle">
+        LLM駆動の倉庫番シミュレーション - 物理法則を学習し、創発的な解決策を発見する
+      </p>
 
-        <!-- Main Content -->
-        <div class="main-content">
-            <!-- Simulation Canvas -->
-            <div class="simulation-panel">
-                <div class="panel-header">
-                    <h2>🏭 工場フロアシミュレーション</h2>
-                    <div class="controls">
-                        <button id="startBtn" class="btn btn-primary">▶ 開始</button>
-                        <button id="pauseBtn" class="btn btn-secondary" disabled>⏸ 一時停止</button>
-                        <button id="resetBtn" class="btn btn-secondary">🔄 リセット</button>
-                        <button id="analyzeBtn" class="btn btn-success" disabled>🧠 AI分析</button>
-                    </div>
-                </div>
-                <div id="canvas-container">
-                    <canvas id="gameCanvas"></canvas>
-                </div>
-                <div class="simulation-info">
-                    <span id="fps">FPS: 60</span>
-                    <span id="time">時間: 0.0s</span>
-                </div>
-            </div>
-
-            <!-- AI Analysis Panel -->
-            <div class="analysis-panel">
-                <div class="panel-header">
-                    <h2>🧠 AI分析結果</h2>
-                </div>
-                
-                <!-- Stats -->
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-value" id="preventedCount">0</div>
-                        <div class="stat-label">防いだ事故</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value" id="riskLevel">安全</div>
-                        <div class="stat-label">現在の危険度</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value" id="aiConfidence">--</div>
-                        <div class="stat-label">AI信頼度</div>
-                    </div>
-                </div>
-
-                <!-- Thinking Process -->
-                <div class="thinking-process-section">
-                    <h3>🤔 エージェントの思考プロセス</h3>
-                    <div id="thinkingProcess" class="thinking-process">
-                        <p class="no-data">AI分析を実行すると、エージェントの思考プロセスが表示されます</p>
-                    </div>
-                </div>
-
-                <!-- Discovered Patterns -->
-                <div class="patterns-section">
-                    <h3>🔍 発見された安全パターン</h3>
-                    <div id="discoveredPatterns" class="discovered-patterns">
-                        <p class="no-data">パターンはまだ発見されていません</p>
-                    </div>
-                </div>
-
-                <!-- Interventions -->
-                <div class="interventions-section">
-                    <h3>🛡️ 介入計画</h3>
-                    <div id="interventionsList" class="interventions-list">
-                        <p class="no-interventions">介入なし</p>
-                    </div>
-                </div>
-
-                <!-- Memory Stream -->
-                <div class="memory-section">
-                    <h3>📚 記憶ストリーム</h3>
-                    <div id="memoryStream" class="memory-stream">
-                        <p class="no-memories">まだ記憶がありません</p>
-                    </div>
-                </div>
-
-                <!-- AI Thinking Log -->
-                <div class="thinking-section">
-                    <h3>💭 AIログ</h3>
-                    <div id="thinkingLog" class="thinking-log">
-                        <p class="thinking-item">システム起動待機中...</p>
-                    </div>
-                </div>
-            </div>
+      <div class="main-content">
+        <!-- Simulation Canvas -->
+        <div class="simulation-panel">
+          <div id="simulation-container"></div>
         </div>
 
-        <!-- Footer -->
-        <footer class="footer">
-            <p>Google Cloud ハッカソン 2026 | Powered by Vertex AI (Gemini) + Cloud Run + Matter.js</p>
-        </footer>
+        <!-- Control Panel -->
+        <div class="control-panel">
+          <!-- Level Selector -->
+          <div class="level-selector">
+            <h3>📋 レベル選択</h3>
+            <div class="level-buttons">
+              <button class="level-btn active" data-level="tutorial">
+                基礎：直線移動
+              </button>
+              <button class="level-btn" data-level="friction">
+                物理：摩擦係数
+              </button>
+              <button class="level-btn" data-level="obstacle">
+                障害：壁の回避
+              </button>
+              <button class="level-btn" data-level="barrier">
+                戦略：誘導路
+              </button>
+            </div>
+          </div>
+
+          <!-- State Info -->
+          <div class="state-info">
+            <h3>📊 状態</h3>
+            <div class="state-item" id="state-position">位置: (-, -)</div>
+            <div class="state-item" id="state-velocity">速度: (-, -)</div>
+            <div class="state-item" id="state-step">ステップ: 0</div>
+            <div class="state-item" id="state-time">時間: 0.0s</div>
+          </div>
+        </div>
+
+        <!-- AI Mode Panel -->
+        <div class="ai-panel">
+            <h3>🧠 AI (EP: <span id="episode-count">0</span>)</h3>
+            <div style="margin-bottom: 10px;">
+              <button class="btn primary" id="btn-ai-mode">
+                🤖 AI開始
+              </button>
+            </div>
+            
+            <!-- Generative Agents Style Display -->
+            <div class="ai-thinking-container">
+              <!-- Observation Section -->
+              <div class="ai-section observation-section">
+                <h4>👀 観察</h4>
+                <div id="ai-observation" class="ai-content">
+                  AIモード: 停止中
+                </div>
+              </div>
+              
+              <!-- Memory Stream Section -->
+              <div class="ai-section memory-section">
+                <h4>📚 記憶</h4>
+                <div id="ai-memory" class="ai-content">
+                  履歴なし
+                </div>
+              </div>
+              
+              <!-- Reflection Section -->
+              <div class="ai-section reflection-section">
+                <h4>💭 学習</h4>
+                <div id="ai-reflection" class="ai-content">
+                  戦略なし
+                </div>
+              </div>
+              
+              <!-- Planning Section -->
+              <div class="ai-section planning-section">
+                <h4>🎯 計画</h4>
+                <div id="ai-planning" class="ai-content">
+                  <strong>推論:</strong> 待機中<br/>
+                  <strong>行動:</strong> なし
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer">
+        <p>TARS © 2026 - LLM-driven World Model for Warehouse Simulation</p>
+      </div>
     </div>
 
-    <script src="/dist/app.js"></script>
-</body>
+    <script type="module">
+      import { WarehouseSimulation, LEVELS } from './dist/simulation.js';
+
+      let simulation = null;
+      let currentLevel = 'tutorial';
+      let updateInterval = null;
+      let aiMode = false;
+      let aiInterval = null;
+      let actionHistory = [];
+      let isAIThinking = false;
+      let autoRetry = true;
+      let episodeCount = 0;
+      let currentEpisodeReward = 0;
+      let episodeTransitioning = false;
+
+      // Initialize
+      function init() {
+        const container = document.getElementById('simulation-container');
+        simulation = new WarehouseSimulation(container, currentLevel);
+        setupEventListeners();
+        startStateUpdate();
+      }
+
+      // Setup event listeners
+      function setupEventListeners() {
+        // Level selection
+        document.querySelectorAll('.level-btn').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            if (aiMode) return; // Prevent level change during AI mode
+            
+            document.querySelectorAll('.level-btn').forEach((b) => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentLevel = btn.dataset.level;
+            simulation.reset(currentLevel);
+          });
+        });
+
+        // AI Mode button
+        document.getElementById('btn-ai-mode').addEventListener('click', () => {
+          if (aiMode) {
+            stopAIMode();
+          } else {
+            startAIMode();
+          }
+        });
+      }
+
+      // Update state display
+      async function updateStateDisplay() {
+        const state = simulation.getState();
+
+        document.getElementById('state-position').textContent =
+          `位置: (${state.box.position.x.toFixed(1)}, ${state.box.position.y.toFixed(1)})`;
+
+        document.getElementById('state-velocity').textContent =
+          `速度: (${state.box.velocity.x.toFixed(2)}, ${state.box.velocity.y.toFixed(2)})`;
+
+        document.getElementById('state-step').textContent = `ステップ: ${state.step}`;
+
+        document.getElementById('state-time').textContent =
+          `時間: ${state.elapsedTime.toFixed(1)}s`;
+
+        // Check success/failure (only in AI mode and not already transitioning)
+        if (aiMode && !episodeTransitioning) {
+          if (state.isSuccess) {
+            episodeTransitioning = true;
+            
+            // Clear existing AI loop to prevent overlap
+            if (aiInterval) {
+              clearTimeout(aiInterval);
+              aiInterval = null;
+            }
+            
+            // エピソード完了をバックエンドに通知
+            await completeEpisode(state, true);
+            
+            document.getElementById('ai-planning').innerHTML =
+              '<strong>✅ AI成功！</strong><br/>荷物がゴールに到達しました！<br/>ステップ数: ' + state.step;
+            
+            // Auto retry if enabled
+            if (autoRetry) {
+              setTimeout(() => {
+                console.log('🔄 次のエピソードを開始...');
+                simulation.reset(currentLevel);
+                simulation.start();
+                episodeCount++;
+                document.getElementById('episode-count').textContent = episodeCount;
+                currentEpisodeReward = 0;
+                actionHistory = [];
+                episodeTransitioning = false;
+                // Resume AI decision loop
+                makeAIDecisionLoop();
+              }, 2000);
+            } else {
+              episodeTransitioning = false;
+              stopAIMode();
+            }
+          } else if (state.isFailure) {
+            episodeTransitioning = true;
+            
+            // Clear existing AI loop to prevent overlap
+            if (aiInterval) {
+              clearTimeout(aiInterval);
+              aiInterval = null;
+            }
+            
+            // エピソード完了をバックエンドに通知
+            await completeEpisode(state, false);
+            
+            document.getElementById('ai-planning').innerHTML =
+              '<strong>❌ AI失敗...</strong><br/>荷物が画面外に落ちたか、時間切れです。';
+            
+            // Auto retry if enabled
+            if (autoRetry) {
+              setTimeout(() => {
+                console.log('🔄 次のエピソードを開始...');
+                simulation.reset(currentLevel);
+                simulation.start();
+                episodeCount++;
+                document.getElementById('episode-count').textContent = episodeCount;
+                currentEpisodeReward = 0;
+                actionHistory = [];
+                episodeTransitioning = false;
+                // Resume AI decision loop
+                makeAIDecisionLoop();
+              }, 2000);
+            } else {
+              episodeTransitioning = false;
+              stopAIMode();
+            }
+          }
+        }
+      }
+
+      async function completeEpisode(state, success) {
+        try {
+          const response = await fetch('/api/world-model/episode-complete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              level_key: currentLevel,
+              state: state,
+              actions_taken: actionHistory,
+              reward: currentEpisodeReward,
+            }),
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            console.log('📚 エピソード完了:', data);
+            
+            if (data.key_insight) {
+              console.log('💡 洞察:', data.key_insight);
+            }
+            if (data.reflection) {
+              console.log('🧠 リフレクション:', data.reflection);
+              updateReflection(data.reflection);
+            }
+            
+            await loadMemory();
+          }
+        } catch (error) {
+          console.error('❌ エピソード完了エラー:', error);
+        }
+      }
+
+      // UI Update Functions
+      function updateObservation(state) {
+        const box = state.box.position;
+        const goal = state.goal.position;
+        const velocity = state.box.velocity;
+        const dx = goal.x - box.x;
+        const dy = goal.y - box.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        const speed = Math.sqrt(velocity.x * velocity.x + velocity.y * velocity.y);
+        
+        document.getElementById('ai-observation').innerHTML = `
+          <div><strong>荷物位置:</strong> (${box.x.toFixed(0)}, ${box.y.toFixed(0)})</div>
+          <div><strong>速度:</strong> ${speed.toFixed(2)} px/s</div>
+          <div><strong>ゴールまで:</strong> ${distance.toFixed(0)} px</div>
+          <div><strong>ステップ:</strong> ${state.step} / ${state.elapsedTime.toFixed(1)}s</div>
+        `;
+      }
+
+      function updatePlanning(reasoning, action) {
+        let actionText = action.type;
+        if (action.type === 'push') {
+          actionText += ` (力: ${action.forceX}, ${action.forceY}, 時間: ${action.duration}ms)`;
+        }
+        
+        document.getElementById('ai-planning').innerHTML = `
+          <strong>💭 推論:</strong> ${reasoning}<br/><br/>
+          <strong>🎬 行動:</strong> ${actionText}<br/>
+          <strong>📝 理由:</strong> ${action.reason}
+        `;
+      }
+
+      async function loadMemory() {
+        try {
+          const response = await fetch(`/api/world-model/memory?level_key=${currentLevel}`);
+          if (response.ok) {
+            const data = await response.json();
+            
+            if (data.recent_episodes && data.recent_episodes.length > 0) {
+              let memoryHtml = '';
+              for (const ep of data.recent_episodes.slice(-3)) {
+                const icon = ep.success ? '✅' : '❌';
+                memoryHtml += `<div class="memory-item">
+                  ${icon} エピソード${ep.episode_id}: ステップ${ep.steps}, 報酬${ep.reward.toFixed(0)}
+                  ${ep.key_insight ? '<br/><small>💡 ' + ep.key_insight + '</small>' : ''}
+                </div>`;
+              }
+              document.getElementById('ai-memory').innerHTML = memoryHtml;
+            }
+            
+            if (data.reflection) {
+              updateReflection(data.reflection);
+            }
+          }
+        } catch (error) {
+          console.error('❌ メモリ読み込みエラー:', error);
+        }
+      }
+
+      function updateReflection(reflection) {
+        let reflectionHtml = `<div><strong>パターン:</strong> ${reflection.pattern}</div>`;
+        
+        if (reflection.successful_strategy) {
+          reflectionHtml += `<div><strong>✅ 成功戦略:</strong> ${reflection.successful_strategy}</div>`;
+        }
+        
+        if (reflection.failed_attempts && reflection.failed_attempts.length > 0) {
+          reflectionHtml += `<div><strong>❌ 失敗から学ぶ:</strong></div>`;
+          for (const attempt of reflection.failed_attempts.slice(-2)) {
+            reflectionHtml += `<div style="margin-left: 10px;">• ${attempt}</div>`;
+          }
+        }
+        
+        reflectionHtml += `<div><strong>💡 改善ヒント:</strong> ${reflection.improvement_hint}</div>`;
+        
+        document.getElementById('ai-reflection').innerHTML = reflectionHtml;
+      }
+
+      // AI Mode functions
+      async function startAIMode() {
+        if (!simulation) return;
+        
+        aiMode = true;
+        actionHistory = [];
+        episodeCount = 1;
+        currentEpisodeReward = 0;
+        episodeTransitioning = false;
+        
+        document.getElementById('btn-ai-mode').textContent = '⏸️ 停止';
+        document.getElementById('btn-ai-mode').style.background = 'rgba(244, 67, 54, 0.6)';
+        document.getElementById('episode-count').textContent = episodeCount;
+        
+        document.getElementById('ai-observation').innerHTML = '🔄 状態を観察中...';
+        document.getElementById('ai-planning').innerHTML = '<strong>推論:</strong> 初期化中...';
+        
+        if (!simulation.isRunning) {
+          simulation.start();
+        }
+        
+        await loadMemory();
+        
+        setTimeout(() => makeAIDecisionLoop(), 500);
+      }
+
+      function stopAIMode() {
+        aiMode = false;
+        episodeTransitioning = false;
+        if (aiInterval) {
+          clearTimeout(aiInterval);
+          aiInterval = null;
+        }
+        isAIThinking = false;
+        document.getElementById('btn-ai-mode').textContent = '🤖 AI開始';
+        document.getElementById('btn-ai-mode').style.background = '';
+      }
+
+      async function makeAIDecisionLoop() {
+        if (!aiMode) return;
+        
+        await makeAIDecision();
+        
+        if (aiMode) {
+          aiInterval = setTimeout(() => makeAIDecisionLoop(), 2000);
+        }
+      }
+
+      async function makeAIDecision() {
+        if (!simulation || !aiMode || isAIThinking) return;
+        
+        isAIThinking = true;
+        
+        const state = simulation.getState();
+        
+        updateObservation(state);
+        
+        let data = null;
+        
+        try {
+          simulation.pauseTimer();
+          
+          document.getElementById('ai-planning').innerHTML = '<strong>推論:</strong> 🤔 AI思考中...';
+          
+          const response = await fetch('/api/world-model/decide', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              level_key: currentLevel,
+              state: state,
+              step: state.step,
+              previous_actions: actionHistory.slice(-10),
+            }),
+          });
+          
+          if (!response.ok) {
+            throw new Error('API request failed');
+          }
+          
+          data = await response.json();
+          
+          console.log('📦 Received action from backend:', data.action);
+          
+          updatePlanning(data.reasoning, data.action);
+          
+        } catch (error) {
+          console.error('AI decision error:', error);
+          document.getElementById('ai-planning').innerHTML = 
+            '<strong>❌ エラー:</strong> ' + error.message;
+          isAIThinking = false;
+          stopAIMode();
+        } finally {
+          simulation.resumeTimer();
+          
+          isAIThinking = false;
+          
+          const finalState = simulation.getState();
+          if (finalState.isSuccess || finalState.isFailure) {
+            console.log('⚠️  Episode ended during AI thinking - skipping action execution');
+            return;
+          }
+          
+          if (data && aiMode) {
+            console.log('🎯 Executing AI action:', data.action);
+            simulation.executeAction(data.action);
+            actionHistory.push(data.action.type);
+          }
+        }
+      }
+
+      function startStateUpdate() {
+        if (updateInterval) clearInterval(updateInterval);
+        updateInterval = setInterval(updateStateDisplay, 100);
+      }
+
+      function stopStateUpdate() {
+        if (updateInterval) {
+          clearInterval(updateInterval);
+          updateInterval = null;
+        }
+      }
+
+      // Initialize on load
+      window.addEventListener('DOMContentLoaded', init);
+    </script>
+  </body>
 </html>
