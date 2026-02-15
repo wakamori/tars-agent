@@ -18,6 +18,7 @@
 **効果**: フロントエンドの変更が即座にブラウザに反映
 
 **使用法:**
+
 ```bash
 npm run dev    # 自動ビルド + ブラウザ自動リロード
 ```
@@ -29,6 +30,7 @@ npm run dev    # 自動ビルド + ブラウザ自動リロード
 **効果**: コミット前に自動でコード品質チェック、バグを事前防止
 
 **動作**: `git commit` 実行時に自動で以下が実行されます
+
 - TypeScript: ESLint自動修正 + 型チェック
 - Python: ruff check --fix + ruff format
 
@@ -39,6 +41,7 @@ npm run dev    # 自動ビルド + ブラウザ自動リロード
 **効果**: 1コマンドで開発環境全体を起動
 
 **docker-compose.yml:**
+
 ```yaml
 version: '3.8'
 services:
@@ -64,6 +67,7 @@ services:
 ```
 
 **使用法:**
+
 ```bash
 docker-compose up  # すべて起動
 ```
@@ -75,6 +79,7 @@ docker-compose up  # すべて起動
 **効果**: チーム全体で一貫した開発環境
 
 **.vscode/extensions.json を作成:**
+
 ```json
 {
   "recommendations": [
@@ -87,6 +92,7 @@ docker-compose up  # すべて起動
 ```
 
 **.vscode/launch.json を作成:**
+
 ```json
 {
   "version": "0.2.0",
@@ -112,6 +118,7 @@ docker-compose up  # すべて起動
 **効果**: プルリクエスト時の自動テスト、自動デプロイ
 
 **.github/workflows/ci.yml:**
+
 ```yaml
 name: CI
 on: [push, pull_request]
@@ -133,11 +140,13 @@ jobs:
 **注意**: YAGNI原則に基づき、テストが本当に必要になるまで導入しない
 
 **バックエンド:**
+
 ```bash
 uv add --dev pytest pytest-asyncio httpx
 ```
 
 **フロントエンド:**
+
 ```bash
 npm install -D vitest @testing-library/dom
 ```
@@ -149,29 +158,31 @@ npm install -D vitest @testing-library/dom
 **効果**: 複雑なコマンドを簡略化
 
 **Makefile:**
+
 ```makefile
 .PHONY: dev build lint test deploy
 
 dev:
-	./dev.sh
+ ./dev.sh
 
 build:
-	npm run build
-	uv run ruff format backend/
+ npm run build
+ uv run ruff format backend/
 
 lint:
-	uv run ruff check backend/
-	npm run lint
+ uv run ruff check backend/
+ npm run lint
 
 test:
-	uv run pytest
-	npm test
+ uv run pytest
+ npm test
 
 deploy:
-	./deploy.sh
+ ./deploy.sh
 ```
 
 **使用法:**
+
 ```bash
 make dev
 make lint
@@ -183,7 +194,7 @@ make deploy
 ## 📊 推奨度マトリクス
 
 | 提案 | 優先度 | 効果 | 工数 | すぐ導入すべき？ | ステータス |
-|------|--------|------|------|------------------|-----------|
+| ---- | ------ | ---- | ---- | ---------------- | --------- |
 | Hot Reload | 高 | ⭐⭐⭐⭐⭐ | 15分 | ✅ はい | ✅ 実装済み |
 | Pre-commit Hooks | 高 | ⭐⭐⭐⭐⭐ | 15分 | ✅ はい | ✅ 実装済み |
 | Docker Compose | 中 | ⭐⭐⭐ | 30分 | チーム開発なら | - |
@@ -197,11 +208,13 @@ make deploy
 ## 🚀 実装済み機能の使い方
 
 ### Hot Reload
+
 ```bash
 npm run dev    # 自動ビルド + ブラウザ自動リロード
 ```
 
 ### Pre-commit Hooks
+
 ```bash
 git commit -m "your message"
 # → 自動で ESLint + ruff が実行されます

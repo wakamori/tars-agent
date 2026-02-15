@@ -47,6 +47,7 @@ TARSは以下の技術で予測的安全を実現：
 ## 技術スタック
 
 ### バックエンド
+
 - **実行環境**: Google Cloud Run
 - **AI**: Vertex AI (Gemini 2.0 Flash)
 - **フレームワーク**: FastAPI
@@ -54,6 +55,7 @@ TARSは以下の技術で予測的安全を実現：
 - **コード品質**: ruff (linter + formatter)
 
 ### フロントエンド
+
 - **言語**: TypeScript
 - **物理エンジン**: Matter.js
 - **ビルドツール**: esbuild
@@ -109,6 +111,7 @@ npm run build                                  # ビルド
 ### 依存関係管理
 
 **バックエンド (Python):**
+
 - **pyproject.toml**: 依存関係の定義（バージョン範囲）
 - **uv.lock**: 厳密なバージョン固定（再現可能なビルド用）
 
@@ -119,6 +122,7 @@ uv sync          # インストール
 ```
 
 **フロントエンド (TypeScript):**
+
 - **package.json**: 依存関係の定義
 - **package-lock.json**: バージョン固定
 
@@ -143,6 +147,7 @@ npm run lint:fix                # ESLint自動修正
 **Pre-commit Hooks（自動）:**
 
 `git commit` 実行時に自動でリント・フォーマット処理が実行されます：
+
 - TypeScript: ESLint自動修正 + 型チェック
 - Python: ruff check --fix + ruff format
 
@@ -166,11 +171,13 @@ gcloud run deploy tars \
 ### コスト管理
 
 #### 無料枠
+
 - **Cloud Build**: 月120分まで無料
 - **Cloud Run**: 月2Mリクエスト、36万GB秒まで無料
 - **Artifact Registry**: 0.5GBまで無料
 
 #### 課金対策
+
 1. **デプロイ前確認**: `./deploy.sh` は確認プロンプトを表示
 2. **ローカルテスト**: `uvicorn backend.main:app --reload` でローカル開発
 3. **古いイメージ削除**: 定期的に `./cleanup-images.sh` を実行してストレージ課金削減
