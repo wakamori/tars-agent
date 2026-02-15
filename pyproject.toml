@@ -10,6 +10,7 @@ dependencies = [
     "python-multipart==0.0.12",
     "google-cloud-aiplatform==1.71.0",
     "pydantic==2.9.2",
+    "python-dotenv==1.0.1",
 ]
 
 [dependency-groups]

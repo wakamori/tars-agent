@@ -7,16 +7,21 @@ import json
 import os
 
 import vertexai
+from dotenv import load_dotenv
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
+from google.api_core import exceptions as api_exceptions
 from google.auth import exceptions as auth_exceptions
 
 # Import memory system
 from memory import REFLECTION_PROMPT_TEMPLATE, MemorySystem
 from pydantic import BaseModel, Field
 from vertexai.generative_models import GenerationConfig, GenerativeModel, Part
+
+# Load environment variables from .env file
+load_dotenv()
 
 
 # Helper function to flatten Pydantic v2 schema for Vertex AI compatibility
@@ -58,7 +63,11 @@ MODEL_NAME = "gemini-2.5-flash"  # Latest stable Gemini 2.5 Flash model
 try:
     vertexai.init(project=PROJECT_ID, location=LOCATION)
     model = GenerativeModel(MODEL_NAME)
-    print(f"✅ Vertex AI initialized: {PROJECT_ID} / {LOCATION}")
+    if PROJECT_ID == "your-project-id":
+        print("⚠️  Using default project ID. Set GOOGLE_CLOUD_PROJECT env variable for production.")
+        print("ℹ️  Mock responses will be used for AI analysis.")
+    else:
+        print(f"✅ Vertex AI initialized: {PROJECT_ID} / {LOCATION}")
 except Exception as e:
     print(f"⚠️  Vertex AI initialization failed: {e}")
     model = None
@@ -288,6 +297,11 @@ async def analyze_frame(file: UploadFile = File(...)):
             detail="Vertex AI not initialized. Check GOOGLE_CLOUD_PROJECT env variable.",
         )
 
+    # Return mock response for default/development project ID
+    if PROJECT_ID == "your-project-id":
+        print("ℹ️  Using mock response for default project ID")
+        return _get_mock_response()
+
     try:
         # Read image file
         image_bytes = await file.read()
@@ -380,6 +394,11 @@ async def analyze_frame(file: UploadFile = File(...)):
     except auth_exceptions.DefaultCredentialsError as e:
         # Return mock response for local development without authentication
         print(f"⚠️  Authentication not configured, using mock response for development: {str(e)}")
+        return _get_mock_response()
+
+    except api_exceptions.PermissionDenied as e:
+        # Return mock response when API is disabled or project ID is invalid
+        print(f"⚠️  Vertex AI API not enabled or permission denied, using mock response: {str(e)}")
         return _get_mock_response()
 
     except Exception as e:
