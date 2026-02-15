@@ -1,0 +1,39 @@
+{
+    "compilerOptions": {
+        /* Language and Environment */
+        "target": "ES2022",
+        "lib": [
+            "ES2022",
+            "DOM",
+            "DOM.Iterable"
+        ],
+        /* Modules */
+        "module": "ES2022",
+        "moduleResolution": "bundler",
+        "resolveJsonModule": true,
+        /* Emit */
+        "noEmit": true,
+        "sourceMap": true,
+        /* Interop Constraints */
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
+        "forceConsistentCasingInFileNames": true,
+        "isolatedModules": true,
+        /* Type Checking */
+        "strict": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "noFallthroughCasesInSwitch": true,
+        "noImplicitReturns": true,
+        "noUncheckedIndexedAccess": true,
+        /* Completeness */
+        "skipLibCheck": true
+    },
+    "include": [
+        "frontend/src/**/*.ts"
+    ],
+    "exclude": [
+        "node_modules",
+        "frontend/dist"
+    ]
+}

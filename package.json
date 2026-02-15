@@ -1,0 +1,44 @@
+{
+    "name": "tars-agent",
+    "version": "1.0.0",
+    "description": "TARS - Collaborative Robot Safety System with Autonomous AI",
+    "type": "module",
+    "scripts": {
+        "build": "esbuild frontend/src/app.ts --bundle --outfile=frontend/dist/app.js --sourcemap",
+        "watch": "esbuild frontend/src/app.ts --bundle --outfile=frontend/dist/app.js --sourcemap --watch",
+        "serve": "browser-sync start --server --files 'frontend/**/*.html, frontend/dist/**/*.js, frontend/css/**/*.css' --startPath frontend/index.html",
+        "dev": "concurrently \"npm run watch\" \"npm run serve\"",
+        "lint": "eslint frontend/src/**/*.ts",
+        "lint:fix": "eslint frontend/src/**/*.ts --fix",
+        "type-check": "tsc --noEmit",
+        "prepare": "husky"
+    },
+    "dependencies": {
+        "matter-js": "^0.19.0"
+    },
+    "devDependencies": {
+        "@types/matter-js": "^0.19.7",
+        "@types/node": "^20.11.0",
+        "@typescript-eslint/eslint-plugin": "^6.19.0",
+        "@typescript-eslint/parser": "^6.19.0",
+        "browser-sync": "^3.0.4",
+        "concurrently": "^9.2.1",
+        "esbuild": "^0.19.12",
+        "eslint": "^8.56.0",
+        "husky": "^9.1.7",
+        "lint-staged": "^16.2.7",
+        "typescript": "^5.3.3"
+    },
+    "lint-staged": {
+        "frontend/src/**/*.ts": [
+            "eslint --fix",
+            "tsc --noEmit"
+        ],
+        "backend/**/*.py": [
+            "uv run ruff check --fix",
+            "uv run ruff format"
+        ]
+    },
+    "author": "",
+    "license": "MIT"
+}
