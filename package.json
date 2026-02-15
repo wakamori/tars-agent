@@ -1,0 +1,27 @@
+{
+    "name": "tars-agent",
+    "version": "1.0.0",
+    "description": "TARS - Collaborative Robot Safety System with Autonomous AI",
+    "type": "module",
+    "scripts": {
+        "build": "esbuild frontend/src/app.ts --bundle --outfile=frontend/dist/app.js --sourcemap",
+        "watch": "esbuild frontend/src/app.ts --bundle --outfile=frontend/dist/app.js --sourcemap --watch",
+        "lint": "eslint frontend/src/**/*.ts",
+        "lint:fix": "eslint frontend/src/**/*.ts --fix",
+        "type-check": "tsc --noEmit"
+    },
+    "dependencies": {
+        "matter-js": "^0.19.0"
+    },
+    "devDependencies": {
+        "@types/matter-js": "^0.19.7",
+        "@types/node": "^20.11.0",
+        "@typescript-eslint/eslint-plugin": "^6.19.0",
+        "@typescript-eslint/parser": "^6.19.0",
+        "esbuild": "^0.19.12",
+        "eslint": "^8.56.0",
+        "typescript": "^5.3.3"
+    },
+    "author": "",
+    "license": "MIT"
+}

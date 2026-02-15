@@ -40,6 +40,9 @@ dist/
 build/
 *.egg-info/
 
+# TypeScript
+*.tsbuildinfo
+
 # Node modules (if using frontend build tools)
 node_modules/
 package-lock.json
