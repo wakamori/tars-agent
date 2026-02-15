@@ -27,7 +27,7 @@ echo -e "${GREEN}✓ uv が見つかりました${NC}"
 # 依存関係をインストール
 echo ""
 echo -e "${BLUE}依存関係をインストールしています...${NC}"
-uv sync
+uv sync --extra dev
 
 echo -e "${GREEN}✓ 依存関係のインストール完了${NC}"
 echo ""
