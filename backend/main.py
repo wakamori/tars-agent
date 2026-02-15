@@ -7,15 +7,21 @@ import json
 import os
 
 import vertexai
+from dotenv import load_dotenv
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
+from google.api_core import exceptions as api_exceptions
+from google.auth import exceptions as auth_exceptions
 
 # Import memory system
 from memory import REFLECTION_PROMPT_TEMPLATE, MemorySystem
 from pydantic import BaseModel, Field
 from vertexai.generative_models import GenerationConfig, GenerativeModel, Part
+
+# Load environment variables from .env file
+load_dotenv()
 
 
 # Helper function to flatten Pydantic v2 schema for Vertex AI compatibility
@@ -57,7 +63,11 @@ MODEL_NAME = "gemini-2.5-flash"  # Latest stable Gemini 2.5 Flash model
 try:
     vertexai.init(project=PROJECT_ID, location=LOCATION)
     model = GenerativeModel(MODEL_NAME)
-    print(f"✅ Vertex AI initialized: {PROJECT_ID} / {LOCATION}")
+    if PROJECT_ID == "your-project-id":
+        print("⚠️  Using default project ID. Set GOOGLE_CLOUD_PROJECT env variable for production.")
+        print("ℹ️  Mock responses will be used for AI analysis.")
+    else:
+        print(f"✅ Vertex AI initialized: {PROJECT_ID} / {LOCATION}")
 except Exception as e:
     print(f"⚠️  Vertex AI initialization failed: {e}")
     model = None
@@ -67,9 +77,7 @@ memory_system = MemorySystem(memory_file="data/memory_stream.json")
 
 
 # FastAPI app
-app = FastAPI(
-    title="TARS API", description="協働ロボット空間知能守護システム", version="1.0.0"
-)
+app = FastAPI(title="TARS API", description="協働ロボット空間知能守護システム", version="1.0.0")
 
 # CORS middleware
 app.add_middleware(
@@ -100,21 +108,15 @@ class SelfInquiry(BaseModel):
 
     observations: list[str] = Field(description="環境の観察内容")
     memory_connections: list[str] = Field(description="過去の記憶との関連")
-    accident_scenarios: list[AccidentScenario] = Field(
-        description="想定される事故シナリオ"
-    )
+    accident_scenarios: list[AccidentScenario] = Field(description="想定される事故シナリオ")
     causal_analysis: str = Field(description="因果関係の分析")
 
 
 class Entity(BaseModel):
     """検出されたエンティティ"""
 
-    type: str = Field(
-        description="エンティティのタイプ: worker, robot, obstacle, hazard"
-    )
-    bbox: list[float] = Field(
-        description="バウンディングボックス [x1, y1, x2, y2] 正規化座標"
-    )
+    type: str = Field(description="エンティティのタイプ: worker, robot, obstacle, hazard")
+    bbox: list[float] = Field(description="バウンディングボックス [x1, y1, x2, y2] 正規化座標")
     description: str = Field(description="エンティティの説明")
     risk_level: int = Field(ge=0, le=100, description="リスクレベル")
     movement: str = Field(description="移動状態: static, moving_slow, moving_fast")
@@ -153,9 +155,7 @@ class AgentResponse(BaseModel):
 
     self_inquiry: SelfInquiry = Field(description="自己質問プロセス")
     entities: list[Entity] = Field(description="検出されたエンティティ")
-    discovered_patterns: list[DiscoveredPattern] = Field(
-        description="発見されたパターン"
-    )
+    discovered_patterns: list[DiscoveredPattern] = Field(description="発見されたパターン")
     intervention_decision: InterventionDecision = Field(description="介入判断")
     confidence: float = Field(ge=0.0, le=1.0, description="信頼度")
     learning_note: str = Field(description="この観察から学んだこと")
@@ -297,6 +297,11 @@ async def analyze_frame(file: UploadFile = File(...)):
             detail="Vertex AI not initialized. Check GOOGLE_CLOUD_PROJECT env variable.",
         )
 
+    # Return mock response for default/development project ID
+    if PROJECT_ID == "your-project-id":
+        print("ℹ️  Using mock response for default project ID")
+        return _get_mock_response()
+
     try:
         # Read image file
         image_bytes = await file.read()
@@ -308,9 +313,7 @@ async def analyze_frame(file: UploadFile = File(...)):
         agent_prompt = AGENT_PROMPT_TEMPLATE.format(memory_context=memory_context)
 
         # Create image part
-        image_part = Part.from_data(
-            data=image_bytes, mime_type=file.content_type or "image/png"
-        )
+        image_part = Part.from_data(data=image_bytes, mime_type=file.content_type or "image/png")
 
         print(f"🤖 Agent analyzing with {len(memory_system.memories)} memories...")
 
@@ -338,14 +341,10 @@ async def analyze_frame(file: UploadFile = File(...)):
             if "MAX_TOKENS" in finish_reason_str:
                 print("⚠️  Response truncated due to MAX_TOKENS")
                 # Return fallback response
-                return _create_fallback_response(
-                    "AI応答がトークン制限により切り詰められました"
-                )
+                return _create_fallback_response("AI応答がトークン制限により切り詰められました")
             elif "SAFETY" in finish_reason_str:
                 print("⚠️  Response blocked by safety filters")
-                return _create_fallback_response(
-                    "AI応答が安全フィルタによりブロックされました"
-                )
+                return _create_fallback_response("AI応答が安全フィルタによりブロックされました")
 
         # Parse response with structured output
         try:
@@ -358,24 +357,17 @@ async def analyze_frame(file: UploadFile = File(...)):
 
         except (ValueError, AttributeError, json.JSONDecodeError) as e:
             print(f"⚠️  Parse error: {e}")
-            print(
-                f"Raw response: {response_text[:500] if 'response_text' in locals() else 'N/A'}"
-            )
+            print(f"Raw response: {response_text[:500] if 'response_text' in locals() else 'N/A'}")
             return _create_fallback_response(f"AI応答の解析に失敗: {str(e)}")
 
         # Save to memory system
         observation_summary = " / ".join(agent_response.self_inquiry.observations[:2])
         action = agent_response.intervention_decision.primary_action
-        outcome = (
-            f"Priority {agent_response.intervention_decision.priority} intervention"
-        )
+        outcome = f"Priority {agent_response.intervention_decision.priority} intervention"
 
         # Calculate importance based on priority and confidence
         importance = min(
-            int(
-                agent_response.intervention_decision.priority
-                * agent_response.confidence
-            ),
+            int(agent_response.intervention_decision.priority * agent_response.confidence),
             10,
         )
 
@@ -398,6 +390,16 @@ async def analyze_frame(file: UploadFile = File(...)):
             memory_system.generate_reflection(model, REFLECTION_PROMPT_TEMPLATE)
 
         return agent_response
+
+    except auth_exceptions.DefaultCredentialsError as e:
+        # Return mock response for local development without authentication
+        print(f"⚠️  Authentication not configured, using mock response for development: {str(e)}")
+        return _get_mock_response()
+
+    except api_exceptions.PermissionDenied as e:
+        # Return mock response when API is disabled or project ID is invalid
+        print(f"⚠️  Vertex AI API not enabled or permission denied, using mock response: {str(e)}")
+        return _get_mock_response()
 
     except Exception as e:
         import traceback
@@ -433,12 +435,8 @@ def _create_fallback_response(warning_message: str) -> AgentResponse:
     )
 
 
-@app.get("/mock-analyze", response_model=AgentResponse)
-async def mock_analyze_get():
-    """
-    Mock analysis endpoint for testing without Vertex AI (GET version)
-    Returns dummy autonomous agent data for development
-    """
+def _get_mock_response() -> AgentResponse:
+    """Generate mock response for development/testing"""
     return AgentResponse(
         self_inquiry=SelfInquiry(
             observations=[
@@ -519,6 +517,15 @@ async def mock_analyze_get():
     )
 
 
+@app.get("/mock-analyze", response_model=AgentResponse)
+async def mock_analyze_get():
+    """
+    Mock analysis endpoint for testing without Vertex AI (GET version)
+    Returns dummy autonomous agent data for development
+    """
+    return _get_mock_response()
+
+
 @app.post("/mock-analyze", response_model=AgentResponse)
 async def mock_analyze(file: UploadFile = File(None)):
     """
@@ -526,7 +533,7 @@ async def mock_analyze(file: UploadFile = File(None)):
     Returns dummy autonomous agent data for development
     """
     # File parameter is optional for mock
-    return await mock_analyze_get()
+    return _get_mock_response()
 
 
 @app.get("/memory")
@@ -534,9 +541,7 @@ async def get_memory_stream():
     """Get memory stream and reflections"""
     return {
         "memories": memory_system.retrieve_recent(10),
-        "reflections": (
-            memory_system.reflections[-5:] if memory_system.reflections else []
-        ),
+        "reflections": (memory_system.reflections[-5:] if memory_system.reflections else []),
         "stats": memory_system.get_stats(),
     }
 
@@ -550,7 +555,7 @@ async def clear_memory():
 
 # Mount static files (CSS, JS)
 app.mount("/css", StaticFiles(directory="../frontend/css"), name="css")
-app.mount("/js", StaticFiles(directory="../frontend/js"), name="js")
+app.mount("/dist", StaticFiles(directory="../frontend/dist"), name="dist")
 
 
 if __name__ == "__main__":

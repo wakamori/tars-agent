@@ -26,6 +26,8 @@ htmlcov/
 credentials.json
 service-account-key.json
 *.pem
+application_default_credentials.json
+gcloud/
 
 # IDE
 .vscode/

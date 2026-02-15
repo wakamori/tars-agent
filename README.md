@@ -78,6 +78,9 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 ### ローカル開発
 
+> **💡 開発モード**: Google Cloud認証なしでモックAI応答を使用して動作します。
+> 実際のGemini AIを使用する場合は、[Google Cloud認証](#google-cloud-認証)を参照してください。
+
 **クイックスタート（最も簡単）：**
 
 ```bash
@@ -151,6 +154,49 @@ npm run lint:fix                # ESLint自動修正
 - TypeScript: ESLint自動修正 + 型チェック
 - Python: ruff check --fix + ruff format
 
+### Google Cloud 認証
+
+**ローカル開発**: デフォルトではモックAI応答を使用します（認証不要）。
+
+**実際のGemini AIを使用する場合**:
+
+1. **Google Cloudプロジェクトを作成**
+   - [Google Cloud Console](https://console.cloud.google.com/)でプロジェクトを作成
+   - Vertex AI APIを有効化
+
+2. **認証情報を設定**
+
+   ```bash
+   # Application Default Credentialsを設定
+   gcloud auth application-default login
+   ```
+
+3. **環境変数を設定（恒久的な設定）**
+
+   `.env.example` をコピーして `.env` ファイルを作成：
+
+   ```bash
+   cp .env.example .env
+   ```
+
+   `.env` ファイルを編集してプロジェクトIDを設定：
+
+   ```bash
+   # .env
+   GOOGLE_CLOUD_PROJECT=your-actual-project-id
+   GOOGLE_CLOUD_LOCATION=asia-northeast1
+   ```
+
+   > **注意**: `.env` ファイルは `.gitignore` に含まれているため、GitHubにpushされません。
+
+4. **サーバーを再起動**
+
+   ```bash
+   ./dev.sh
+   ```
+
+これで実際のGemini 2.5 Flash AIが使用されます。
+
 ### Google Cloud デプロイ
 
 ```bash
@@ -212,7 +258,3 @@ gcloud run deploy tars \
 ## ライセンス
 
 MIT License
-
-## ハッカソン
-
-Google Cloud ハッカソン 2026 応募作品
